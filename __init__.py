@@ -1,1 +1,1 @@
-__all__ = ["src"]
+from swt import *

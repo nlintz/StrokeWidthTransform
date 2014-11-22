@@ -5,5 +5,5 @@ SWT implemented in Python
 
 To use package
 ```
-from StrokeWidthTransform.swt import swt
+from StrokeWidthTransform import swt
 ```
