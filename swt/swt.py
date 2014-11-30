@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 import math
+from scipy.interpolate import interp1d
 
 def strokeWidthTransform(img, cannyThresholds=(100, 200)):
   """ Returns the stroke width transform of a color image
@@ -19,11 +20,30 @@ def strokeWidthTransform(img, cannyThresholds=(100, 200)):
   """
   swt = np.empty((img.shape[0], img.shape[1]))
   swt.fill(255) # swt vector is initialized with maximum values
-
   # Apply Canny Edge Detection to input
   edges = cv2.Canny(img, *cannyThresholds)
-  strokes = findStrokes(edges)
+  rays = findStrokeWidthRays(edges)
+  pixels = getStrokeWidthPixels(rays)
+
+  # pixels = filterPixels(pixels, rays)
+  normalized = interp1d([min(pixels.values()), max(pixels.values())], [0, 255])
+  for (row,column), width in pixels.items():
+    if width:
+      swt[row, column] = normalized(width)
+
   return swt
+
+def angleDifference(angle1, angle2):
+  """ Returns shortest distance between two angles
+  arguments --
+  angle1: angle in radians
+  angle2: angle in radians
+
+  return -- 
+  shortest distance between the angles in radians e.g. (2*pi - .01, 0) -> .01
+  """
+  return math.atan2(math.sin(angle1-angle2), math.cos(angle1-angle2))
+
 
 def castRay(edges, angles, startPixel, antigradient=False):
   """ Returns an array of pixels if the ray is valid e.g.
@@ -33,33 +53,33 @@ def castRay(edges, angles, startPixel, antigradient=False):
   arguments --
   edges: 2d grayscale array from canny edge detector
   angles: 2d array of pixel direction angle
-  startPixel: (x,y) tuple for the starting point of the ray
+  startPixel: (row,column) tuple for the starting point of the ray
   antigradient: Boolean over whether you want to cast the ray in the 
     same direction as the gradient or the opposite direction
 
   return --
-  array of (y, x, strokeWidth) pixels
+  array of (row, column, strokeWidth) pixels
   """
   ray = [startPixel]
-  y, x = startPixel
+  row, column = startPixel
   strokeWidth = 1
-  angle = angles[y, x]
+  angle = angles[row, column]
   
   if antigradient:
     angle += math.pi;
-
   while True:
-    x = x + int(strokeWidth * math.cos(angle))
-    y = y - int(strokeWidth * math.sin(angle))
-    
-    if y >= img.shape[0] or y < 0 or x >= img.shape[1] or x < 0:
+    column = startPixel[1] + int(round(strokeWidth * math.cos(angle)))
+    row = startPixel[0] - int(round(strokeWidth * math.sin(angle)))
+    if row >= edges.shape[0] or row < 0 or column >= edges.shape[1] or column < 0:
       return None
     
-    if edges[y, x] != 0:
+    ray.append((row, column))
+    if edges[row, column] == edges[startPixel[0], startPixel[1]]:
       break
-    
     strokeWidth += 1
 
+  if len(ray):
+    strokeWidth = rayLength(ray)
   ray = [pixel + (strokeWidth,) for pixel in ray]
   if rayValid(ray, angles):
     return ray
@@ -67,8 +87,20 @@ def castRay(edges, angles, startPixel, antigradient=False):
   else:
     return None
 
-def findStrokes(edges):
-  """ Returns an array of valid Rays where each ray is 
+def filterPixels(pixels, rays):
+  """ Returns a new set of pixels filtered for weird letter cases e.g. bottoms of L
+
+  """
+  filteredPixels = {}
+  for ray in rays:
+    row, column, minWidth = min(ray, key=lambda x:x[2])
+    for row, column, width in ray:
+      filteredPixels[(row,column)] = minWidth
+  return filteredPixels
+
+
+def findStrokeWidthRays(edges):
+  """ Returns an array of valid rays where each ray is 
     an array of pixels whose grayscale value is their
     stroke width
 
@@ -82,19 +114,41 @@ def findStrokes(edges):
   # Compute edge gradients
   angles = gradient(edges)
   validRays = []
+
   # Cast a ray in the direction of the edge gradient for each pixel
-  for i,row in enumerate(edges):
-    for j,column in enumerate(row):
-      if edges[i, j] > 0:
-        rayWithGradient = castRay(edges, angles, (i,j))
-        if rayWithGradient != None:
+  for rowIndex, row in enumerate(edges):
+    for columnIndex, column in enumerate(row):
+      if edges[rowIndex, columnIndex] == 255:
+        rayWithGradient = castRay(edges, angles, (rowIndex,columnIndex))
+        rayAgainstGradient = castRay(edges, angles, (rowIndex,columnIndex), True)
+
+        if rayWithGradient and rayAgainstGradient:
+          validRays.append(min(rayWithGradient, rayAgainstGradient, key=lambda x: rayLength(x)))
+
+        elif rayWithGradient != None:
           validRays.append(rayWithGradient)
-      
-        rayAgainstGradient = castRay(edges, angles, (i,j), True)
-        if rayAgainstGradient != None:
+        elif rayAgainstGradient != None:
           validRays.append(rayAgainstGradient)
-  
   return validRays
+
+def getStrokeWidthPixels(rays):
+  """ Returns a dictionary mapping pixels to their stroke widths.
+    The width of each pixel is the minimum width of any pixel in its row,column location
+
+    arguments --
+    rays: array of (row, column, strokeWidth) pixels
+
+    return --
+    dictionary mapping (row,column) -> stroke width
+  """
+  strokeWidthPixels = {}
+  for ray in rays:
+    for row, column, width in ray:
+      if (row,column) in strokeWidthPixels:
+        strokeWidthPixels[(row,column)] = min(strokeWidthPixels[(row,column)], width)
+      else:
+        strokeWidthPixels[(row,column)] = width
+  return strokeWidthPixels
 
 def gradient(img):
   """ Returns an np 3d matrix mapping pixels to gradient angle
@@ -105,9 +159,26 @@ def gradient(img):
   2d array of pixel direction angle
 
   """
-  sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=5)
-  sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5)
+  sobelx = cv2.Sobel(img, cv2.CV_32F, 1, 0, ksize = 5, scale = -1)
+  sobely = cv2.Sobel(img, cv2.CV_32F, 0, 1, ksize = 5, scale = -1)
+
   return cv2.phase(sobelx, sobely)
+  # return np.arctan2(np.uint8(np.absolute(sobely)), np.uint8(np.absolute(sob
+  # return np.arctan2(sobely, sobelx)
+  # theta = np.zeros(img.shape, np.float32)
+      
+  # # calculating theta
+  # height = np.size(img, 0)
+  # width = np.size(img, 1)
+  # for row in range(height):
+  #   for col in range(width):
+  #     if(img[row][col] > 0):
+  #       theta[row][col] = math.atan2(sobely[row][col], sobelx[row][col])
+  # return theta
+
+
+def rayLength(ray):
+  return ((ray[0][0] - ray[-1][0])**2+(ray[0][1] - ray[-1][1])**2)**.5
 
 def rayValid(ray, angles):
   """ Returns boolean for whether or not the cast ray is valid
@@ -119,26 +190,11 @@ def rayValid(ray, angles):
   True if array is valid False otherwise
 
   """
-  maxWidth = angles.shape[0]
-  maxHeight = angles.shape[1]
+  if len(ray) < 2:
+    return False
 
   startpoint = ray[0]
   endpoint = ray[-1]
-  
-  if abs(angles[startpoint[0], startpoint[1]]) - abs(angles[endpoint[0], endpoint[1]]) > math.pi / 6.0:
+  if angleDifference(angles[startpoint[0], startpoint[1]], angles[endpoint[0], endpoint[1]]) > math.pi / 6.0:
     return False
-
-  for pixel in ray:
-    x = pixel[0]
-    y = pixel[1]
-    width = pixel[2]
-    if x >= maxWidth or x < 0:
-      return False
-    if y >= maxHeight or y < 0:
-      return False
   return True
-
-img = cv2.imread('stopsign.jpg',0)
-
-plt.imshow(strokeWidthTransform(img), cmap="gray")
-plt.show()
