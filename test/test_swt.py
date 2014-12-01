@@ -47,8 +47,6 @@ def test_gradient():
 
   grad = swt.gradient(img)
   print grad[:,30] * (360/(math.pi * 2))
-  plt.imshow(img, cmap="gray", interpolation="none")
-  plt.show()
 
 def test_gen_lines():
   img = np.zeros((500,500,3), dtype=np.uint8)
@@ -67,6 +65,5 @@ def test_swt_sobel():
   img = cv2.imread('traffic.jpg',0)
   swt.strokeWidthTransform(img)
 
-
 if __name__ == "__main__":
-  test_gradient()
+  test_swt_sobel()
