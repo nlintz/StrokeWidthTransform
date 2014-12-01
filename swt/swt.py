@@ -10,6 +10,7 @@ import math
 import copy
 import random
 from scipy.interpolate import interp1d
+from profiler import *
 
 def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   """ Returns the stroke width transform of a color image
@@ -23,10 +24,8 @@ def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   """  
   edges = cv2.Canny(img, 100, 300)
   thetas = gradient(img, edges)
-
   firstPass, rays = castRays(edges, thetas, direction)
   secondPass = refineRays(firstPass, rays)
-
   return secondPass
 
 def refineRays(swt, rays):
@@ -48,7 +47,6 @@ def refineRays(swt, rays):
         swt[pixel[0]][pixel[1]] = medianLength
   return swt
 
-
 def castRays(edges, angles, direction, maxRayLength=100):
   """ casts a ray for every edge in the image
   arguments --
@@ -59,7 +57,6 @@ def castRays(edges, angles, direction, maxRayLength=100):
   return -- 
   [swt first pass, rays]
   """
-
   swt = np.empty((edges.shape[0], edges.shape[1]))
   swt.fill(255) # swt vector is initialized with maximum values
   rays = []
@@ -77,8 +74,8 @@ def castRays(edges, angles, direction, maxRayLength=100):
   for ray in rays:
     for pixel in ray:
       swt[pixel[0], pixel[1]] = min(normalized(rayLength(ray)), swt[pixel[0], pixel[1]])
-  return [swt, rays]
 
+  return [swt, rays]
 
 def castRay((row, column), angles, edgeIndices, maxRayLength, direction):
   """ Returns length of the ray
@@ -92,7 +89,6 @@ def castRay((row, column), angles, edgeIndices, maxRayLength, direction):
   return -- 
   an array of pixels if valid ray or None
   """
-
   height, width = angles.shape
   rayLength = 1
   rayDirection = angles[row][column]
