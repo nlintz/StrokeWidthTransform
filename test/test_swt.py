@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import cv2
 import math
+import ImageFilter
 
 def test_castRay():
   img = np.zeros((100,100),dtype=np.uint8)
@@ -36,30 +37,36 @@ def test_imageSWT():
   plt.show()
 
 def test_gradient():
-  img = np.zeros((100,100), dtype=np.uint8)
-  # cv2.rectangle(img, (40,30), (60,80), 255, -1)
-  cv2.line(img, (0,0), (99,99), 255, 2)
-  # cv2.line(img, (50,0), (50,99), 255, 5)
-  # cv2.line(img, (0,50), (99,50), 0, 5)
-  # angles = swt.gradient(img)
-  # print angles[:, 40]
+  # img = cv2.imread('diag.jpg',0)
+  width = 500
+  height = 500
+  img = np.zeros((height,width), dtype=np.uint8)
+  # cv2.line(img, (0,height-1), (height-1,width/2), (255, 255, 255), 3)
+  # cv2.line(img, (0,height-1), (int(height-1/2.0),0), (255, 255, 255), 3)
+  cv2.line(img, (0,0), (int((height-1)/2.0),height-1), (255, 255, 255), 3)
+
+  grad = swt.gradient(img)
+  print grad[:,30] * (360/(math.pi * 2))
   plt.imshow(img, cmap="gray", interpolation="none")
   plt.show()
 
-def test_canny():
-  img = cv2.imread('N.jpg',0)
-  img = (img)
-  edges = cv2.Canny(img, 100, 200)
-  sobelx = cv2.Sobel(edges, cv2.CV_32F, 1, 0, ksize = 5, scale = -1)
-  sobely = cv2.Sobel(edges, cv2.CV_32F, 0, 1, ksize = 5, scale = -1)
-  angles = np.arctan2(sobely, sobelx)
-  # angles = cv2.phase(sobelx, sobely)
-  # angles = swt.gradient(edges)
-  print angles[50,:]*360/(math.pi*2)
-  plt.imshow(cv2.phase(sobelx, sobely), cmap="gray", interpolation="none")
-  # plt.plot(angles)
-  plt.show()
+def test_gen_lines():
+  img = np.zeros((500,500,3), dtype=np.uint8)
+  cv2.line(img, (0,50), (500,50), (255, 255, 255), 5)
+  cv2.imwrite('horz.jpg', img)
+  
+  img = np.zeros((100,100, 3), dtype=np.uint8)
+  cv2.line(img, (50,0), (50,99), (255, 255, 255), 5)
+  cv2.imwrite('vert.jpg', img)
+  
+  img = np.zeros((100,100, 3), dtype=np.uint8)
+  cv2.line(img, (0,0), (99,99), (255, 255, 255), 5)
+  cv2.imwrite('diag.jpg', img)
+
+def test_swt_sobel():
+  img = cv2.imread('traffic.jpg',0)
+  swt.strokeWidthTransform(img)
 
 
 if __name__ == "__main__":
-  test_canny()
+  test_gradient()

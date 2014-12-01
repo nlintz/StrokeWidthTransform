@@ -9,19 +9,22 @@ from matplotlib import pyplot as plt
 import math
 from scipy.interpolate import interp1d
 
-def strokeWidthTransform(img, cannyThresholds=(100, 200)):
+def strokeWidthTransform(img, direction=-1, cannyThresholds=(100,300)):
   """ Returns the stroke width transform of a color image
 
   arguments --
   img: 2d grayscale array of image
+  direction: -1 detects light text on dark background, 1 detects dark text on light background
 
   return --
   2d grayscale array where each pixel's value  is its stroke width 
   """
   swt = np.empty((img.shape[0], img.shape[1]))
   swt.fill(255) # swt vector is initialized with maximum values
-  # Apply Canny Edge Detection to input
-  edges = cv2.Canny(img, *cannyThresholds)
+  
+  theta = gradient(img)
+
+  """
   rays = findStrokeWidthRays(edges)
   pixels = getStrokeWidthPixels(rays)
 
@@ -32,6 +35,7 @@ def strokeWidthTransform(img, cannyThresholds=(100, 200)):
       swt[row, column] = normalized(width)
 
   return swt
+  """
 
 def angleDifference(angle1, angle2):
   """ Returns shortest distance between two angles
@@ -150,32 +154,19 @@ def getStrokeWidthPixels(rays):
         strokeWidthPixels[(row,column)] = width
   return strokeWidthPixels
 
-def gradient(img):
-  """ Returns an np 3d matrix mapping pixels to gradient angle
-  arguments --
-  img: 2d grayscale array of image
+# def gradient(img):
+#   """ Returns an np 3d matrix mapping pixels to gradient angle
+#   arguments --
+#   img: 2d grayscale array of image
 
-  return --
-  2d array of pixel direction angle
+#   return --
+#   2d array of pixel direction angle
 
-  """
-  sobelx = cv2.Sobel(img, cv2.CV_32F, 1, 0, ksize = 5, scale = -1)
-  sobely = cv2.Sobel(img, cv2.CV_32F, 0, 1, ksize = 5, scale = -1)
+#   """
+#   sobelx = cv2.Sobel(img, cv2.CV_32FC1, 1, 0, ksize = 5, scale = -1)
+#   sobely = cv2.Sobel(img, cv2.CV_32FC1, 0, 1, ksize = 5, scale = -1)
 
-  return cv2.phase(sobelx, sobely)
-  # return np.arctan2(np.uint8(np.absolute(sobely)), np.uint8(np.absolute(sob
-  # return np.arctan2(sobely, sobelx)
-  # theta = np.zeros(img.shape, np.float32)
-      
-  # # calculating theta
-  # height = np.size(img, 0)
-  # width = np.size(img, 1)
-  # for row in range(height):
-  #   for col in range(width):
-  #     if(img[row][col] > 0):
-  #       theta[row][col] = math.atan2(sobely[row][col], sobelx[row][col])
-  # return theta
-
+#   return cv2.phase(sobelx, sobely)
 
 def rayLength(ray):
   return ((ray[0][0] - ray[-1][0])**2+(ray[0][1] - ray[-1][1])**2)**.5
@@ -198,3 +189,25 @@ def rayValid(ray, angles):
   if angleDifference(angles[startpoint[0], startpoint[1]], angles[endpoint[0], endpoint[1]]) > math.pi / 6.0:
     return False
   return True
+
+def gradient(img):
+  """ Returns matrix of angles 
+  arguments -- 
+  edges: black and white image result of canny edge detector
+
+  return --
+  matrix of theta values
+  """
+
+  rows = np.size(img, 0)
+  columns = np.size(img, 1)
+  edges = cv2.Canny(img, 100, 300)
+  dx = cv2.Sobel(img, cv2.CV_32F, 1, 0, ksize = 5, scale = -1, delta = 1, borderType = cv2.BORDER_DEFAULT)
+  dy = cv2.Sobel(img, cv2.CV_32F, 0, 1, ksize = 5, scale = -1, delta = 1, borderType = cv2.BORDER_DEFAULT)
+
+  theta = np.zeros(img.shape)
+  for row in range(rows):
+    for col in range(columns):
+      if(edges[row][col] > 0):
+        theta[row][col] = math.atan2(dy[row][col], dx[row][col])
+  return theta
