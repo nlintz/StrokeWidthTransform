@@ -7,10 +7,11 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 import math
+import copy
 import random
 from scipy.interpolate import interp1d
 
-def strokeWidthTransform(img, direction=-1, cannyThresholds=(100,300)):
+def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   """ Returns the stroke width transform of a color image
 
   arguments --
@@ -22,19 +23,43 @@ def strokeWidthTransform(img, direction=-1, cannyThresholds=(100,300)):
   """  
   edges = cv2.Canny(img, 100, 300)
   thetas = gradient(img, edges)
-  plt.subplot(2,1,1)
-  plt.imshow(edges, 'gray')
 
-  firstPass, rays = castRays(edges, thetas)
+  firstPass, rays = castRays(edges, thetas, direction)
+  secondPass = refineRays(firstPass, rays)
 
-  # Debug Plotting
-  plt.subplot(2,1,2)
-  plt.imshow(firstPass, 'gray')
-  plt.show()
+  return secondPass
+
+def refineRays(swt, rays):
+  """ Second pass as described in article
+    pixels who are longer than the median value of the ray are set to the medianLength
+    arguments -- 
+    swt: swt from first pass
+    rays: array of pixels in ray
+
+    returns:
+    refined swt image
+
+  """
+  swt = copy.deepcopy(swt)
+  for ray in rays:
+    medianLength = np.median(map(lambda x: swt[x[0]][x[1]], ray))
+    for pixel in ray:
+      if swt[pixel[0]][pixel[1]] > medianLength:
+        swt[pixel[0]][pixel[1]] = medianLength
+  return swt
 
 
+def castRays(edges, angles, direction, maxRayLength=100):
+  """ casts a ray for every edge in the image
+  arguments --
+  edges: black and white image result of canny edge detector
+  angles: black and white image result of sobel operator
+  direction: 1 or -1
 
-def castRays(edges, angles, maxRayLength=200):
+  return -- 
+  [swt first pass, rays]
+  """
+
   swt = np.empty((edges.shape[0], edges.shape[1]))
   swt.fill(255) # swt vector is initialized with maximum values
   rays = []
@@ -42,26 +67,40 @@ def castRays(edges, angles, maxRayLength=200):
   edgeIndices = zip(nonZeroEdges[0], nonZeroEdges[1])
   edgeLookup = set(edgeIndices)
   for (row, column) in edgeIndices:
-    rays.append(castRay((row,column), angles, edgeLookup, maxRayLength))
+    ray = castRay((row,column), angles, edgeLookup, maxRayLength, direction)
+    if ray:
+      if len(ray) > 1:
+        rays.append(ray)
 
   allRayLengths = map(lambda x: rayLength(x), filter(lambda x: x != None, rays))
   normalized = interp1d([min(allRayLengths), max(allRayLengths)], [0, 255])
   for ray in rays:
-    if ray:
-      if len(ray) > 1:
-        for pixel in ray:
-          swt[pixel[0], pixel[1]] = min(normalized(rayLength(ray)), swt[pixel[0], pixel[1]])
+    for pixel in ray:
+      swt[pixel[0], pixel[1]] = min(normalized(rayLength(ray)), swt[pixel[0], pixel[1]])
   return [swt, rays]
 
 
-def castRay((row, column), angles, edgeIndices, maxRayLength):
+def castRay((row, column), angles, edgeIndices, maxRayLength, direction):
+  """ Returns length of the ray
+  arguments --
+  (row, column): rays starting position
+  angles: result of sobel operator
+  edgeIndices: indices of edge pixels in image
+  maxRayLength: maximum length of ray in pixels
+  direction: 1 or -1
+
+  return -- 
+  an array of pixels if valid ray or None
+  """
+
   height, width = angles.shape
   rayLength = 1
   rayDirection = angles[row][column]
   rayValid = False
   ray = [(row, column)]
   while rayLength < maxRayLength:
-    pixel = (int(row + math.sin(rayDirection)*rayLength), int(column+math.cos(rayDirection)*rayLength))
+    pixel = (int(row + math.sin(rayDirection)*rayLength*direction), 
+      int(column+math.cos(rayDirection)*rayLength*direction))
     if pixel[0] >= height or pixel[0] < 0 or pixel[1] >= width or pixel[1] < 0:
       return None
 
@@ -96,6 +135,13 @@ def angleDifference(angle1, angle2):
   return abs(abs(angle1 - angle2) - math.pi)
 
 def rayLength(ray):
+  """ Returns length of the ray
+  arguments --
+  ray: ray of pixels
+
+  return -- 
+  ray length
+  """
   return ((ray[0][0] - ray[-1][0])**2+(ray[0][1] - ray[-1][1])**2)**.5
 
 def gradient(img, edges):
