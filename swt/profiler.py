@@ -15,15 +15,23 @@ def timeit(method):
 
 class Timer(object):
   def __init__(self):
-    self.startTimes = []
-    self.stopTimes = []
+    self.startTimes = {}
+    self.stopTimes = {}
 
-  def start(self, name=None):
-    if name:
-      print name + " start"
-    self.startTimes.append(time.time())
+  def start(self, name):
+    print name + " start"
+    self.startTimes[name] = time.time()
 
-  def stop(self, name=""):
+  def stop(self, name):
     stopTime = time.time()
-    print "%s ran - Time Elapsed: %f s" % (name, (stopTime - self.startTimes[-1]))
-    self.stopTimes.append(stopTime)
+    print "%s ran - Time Elapsed: %f s" % (name, (stopTime - self.startTimes[name]))
+    self.stopTimes[name] = stopTime
+
+  def startOnce(self, name):
+    if not self.startTimes.get(name, False):
+      self.start(name)
+
+  def stopOnce(self, name):
+    if not self.stopTimes.get(name, False):
+      self.stop(name)
+

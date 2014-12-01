@@ -7,14 +7,19 @@ import cv2
 import math
 from profiler import *
 
+def test_profileSWT():
+  img = cv2.imread('036.jpg',0)
+  swt_pos = swt.strokeWidthTransform(img, 1)
+
 def test_imageSWT():
-  img = cv2.imread('sofsign.jpg',0)
-  B,G,R = cv2.split(cv2.imread('sofsign.jpg',1))
+  filename = '036.jpg'
+  img = cv2.imread(filename,0)
+  B,G,R = cv2.split(cv2.imread(filename,1))
   img_color = cv2.merge((R,G,B))
   swt_pos = swt.strokeWidthTransform(img, 1)
-  swt_pos_dilated = 255 - cv2.dilate(255-swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 2)
+  swt_pos_dilated = 255 - cv2.dilate(255 - swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 2)
   swt_neg = swt.strokeWidthTransform(img, -1)
-  swt_neg_dilated = 255-cv2.dilate(255-swt_neg, kernel = np.ones((2,2),np.uint8), iterations = 2)
+  swt_neg_dilated = 255 - cv2.dilate(255 - swt_neg, kernel = np.ones((2,2),np.uint8), iterations = 2)
 
   plt.subplot(3,2,1)
   plt.imshow(img_color, interpolation="none")

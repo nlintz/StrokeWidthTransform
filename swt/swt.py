@@ -10,9 +10,11 @@ import math
 import copy
 import random
 from scipy.interpolate import interp1d
-from profiler import *
 from multiprocessing import Pool
+from functools import partial
+from profiler import *
 
+t = Timer()
 def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   """ Returns the stroke width transform of a color image
 
@@ -22,10 +24,14 @@ def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
 
   return --
   2d grayscale array where each pixel's value  is its stroke width 
-  """  
+  """
   edges = cv2.Canny(img, 100, 300)
   thetas = gradient(img, edges)
   firstPass, rays = castRays(edges, thetas, direction)
+  
+  if rays == None:
+    return firstPass
+  
   secondPass = refineRays(firstPass, rays)
   return secondPass
 
@@ -48,6 +54,14 @@ def refineRays(swt, rays):
         swt[pixel[0]][pixel[1]] = medianLength
   return swt
 
+def castProcess(angles, edgeLookup, maxRayLength, direction, pixel):
+  ray = castRay(pixel, angles, edgeLookup, maxRayLength, direction)
+  if ray:
+    if len(ray) > 1:
+      return ray
+  return None
+
+
 def castRays(edges, angles, direction, maxRayLength=100):
   """ casts a ray for every edge in the image
   arguments --
@@ -64,21 +78,31 @@ def castRays(edges, angles, direction, maxRayLength=100):
   nonZeroEdges = edges.nonzero()
   edgeIndices = zip(nonZeroEdges[0], nonZeroEdges[1])
   edgeLookup = set(edgeIndices)
+
+  pool = Pool(processes=4)
+  cp = partial(castProcess, angles, edgeLookup, maxRayLength, direction)
+  t.start('multiprocess')
+  results = pool.map(cp, edgeIndices)
+  t.stop('multiprocess')
+  # print len(filter(lambda x:x!= None, results)), len(results)
+
+  t.start('single process')
   for (row, column) in edgeIndices:
     ray = castRay((row,column), angles, edgeLookup, maxRayLength, direction)
     if ray:
       if len(ray) > 1:
         rays.append(ray)
+  t.stop('single process')
 
   allRayLengths = map(lambda x: rayLength(x), filter(lambda x: x != None, rays))
-  minL, maxL = min(allRayLengths), max(allRayLengths)
+  
+  if len(allRayLengths) == 0:
+    return [swt, None]
 
+  minL, maxL = min(allRayLengths), max(allRayLengths)
   for ray in rays:
     for pixel in ray:
-      # if normalize(rayLength(ray), minL, maxL, 0, 255) > 100:
-        # print rayLength(ray), normalize(rayLength(ray), minL, maxL, 0, 255)
       swt[pixel[0], pixel[1]] = min(normalize(rayLength(ray), minL, maxL, 0, 255), swt[pixel[0], pixel[1]])
-
   return [swt, rays]
 
 
