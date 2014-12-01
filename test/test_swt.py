@@ -8,16 +8,22 @@ import math
 
 
 def test_imageSWT():
-  img = cv2.imread('traffic.jpg',0)
-  B,G,R = cv2.split(cv2.imread('traffic.jpg',1))
+  img = cv2.imread('sofsign.jpg',0)
+  B,G,R = cv2.split(cv2.imread('sofsign.jpg',1))
   img_color = cv2.merge((R,G,B))
 
-  plt.subplot(1,3,1)
+  swt_pos = swt.strokeWidthTransform(img, 1)
+  swt_neg = swt.strokeWidthTransform(img, -1)
+
+  plt.subplot(2,2,1)
   plt.imshow(img_color, interpolation="none")
-  plt.subplot(1,3,2)
-  plt.imshow(swt.strokeWidthTransform(img, 1), cmap="gray", interpolation="none")
-  plt.subplot(1,3,3)
-  plt.imshow(swt.strokeWidthTransform(img, -1), cmap="gray", interpolation="none")
+  plt.subplot(2,2,2)
+  plt.imshow(swt_pos, cmap="gray", interpolation="none")
+  plt.subplot(2,2,3)
+  plt.imshow(swt_neg, cmap="gray", interpolation="none")
+  plt.subplot(2,2,4)
+  plt.imshow(255-cv2.dilate(255-swt_neg, kernel = np.ones((2,2),np.uint8), iterations = 1), cmap="gray", interpolation="none")
+
 
   plt.show()
 
