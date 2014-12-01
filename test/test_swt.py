@@ -12,17 +12,30 @@ def test_imageSWT():
   B,G,R = cv2.split(cv2.imread('sofsign.jpg',1))
   img_color = cv2.merge((R,G,B))
   swt_pos = swt.strokeWidthTransform(img, 1)
-  # swt_neg = swt.strokeWidthTransform(img, -1)
+  swt_pos_dilated = 255 - cv2.dilate(255-swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 2)
+  swt_neg = swt.strokeWidthTransform(img, -1)
+  swt_neg_dilated = 255-cv2.dilate(255-swt_neg, kernel = np.ones((2,2),np.uint8), iterations = 2)
 
-  # plt.subplot(2,2,1)
-  # plt.imshow(img_color, interpolation="none")
-  # plt.subplot(2,2,2)
-  # plt.imshow(swt_pos, cmap="gray", interpolation="none")
-  # plt.subplot(2,2,3)
-  # plt.imshow(swt_neg, cmap="gray", interpolation="none")
-  # plt.subplot(2,2,4)
-  # plt.imshow(255-cv2.dilate(255-swt_neg, kernel = np.ones((2,2),np.uint8), iterations = 1), cmap="gray", interpolation="none")
-  # plt.show()
+  plt.subplot(3,2,1)
+  plt.imshow(img_color, interpolation="none")
+  plt.title('original image')
+
+  plt.subplot(3,2,3)
+  plt.imshow(swt_pos, cmap="gray", interpolation="none")
+  plt.title('positive swt of image')
+  plt.subplot(3,2,4)
+  plt.imshow(swt_pos_dilated, cmap="gray", interpolation="none")
+  plt.title('dilated positive swt of image')
+
+  plt.subplot(3,2,5)
+  plt.title('negative swt of image')
+  plt.imshow(swt_neg, cmap="gray", interpolation="none")
+  plt.subplot(3,2,6)
+  plt.title('dilated negative swt of image')
+  plt.imshow(swt_neg_dilated, cmap="gray", interpolation="none")
+
+
+  plt.show()
 
 def test_gradient():
   width = 500

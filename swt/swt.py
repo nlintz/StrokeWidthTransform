@@ -71,13 +71,16 @@ def castRays(edges, angles, direction, maxRayLength=100):
         rays.append(ray)
 
   allRayLengths = map(lambda x: rayLength(x), filter(lambda x: x != None, rays))
-  normalized = interp1d([min(allRayLengths), max(allRayLengths)], [0, 255])
   minL, maxL = min(allRayLengths), max(allRayLengths)
+
   for ray in rays:
     for pixel in ray:
+      # if normalize(rayLength(ray), minL, maxL, 0, 255) > 100:
+        # print rayLength(ray), normalize(rayLength(ray), minL, maxL, 0, 255)
       swt[pixel[0], pixel[1]] = min(normalize(rayLength(ray), minL, maxL, 0, 255), swt[pixel[0], pixel[1]])
 
   return [swt, rays]
+
 
 def normalize(value, oldMin, oldMax, newMin, newMax):
   """ interpolation function from http://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
