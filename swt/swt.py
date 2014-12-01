@@ -11,6 +11,7 @@ import copy
 import random
 from scipy.interpolate import interp1d
 from profiler import *
+from multiprocessing import Pool
 
 def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   """ Returns the stroke width transform of a color image
@@ -71,11 +72,25 @@ def castRays(edges, angles, direction, maxRayLength=100):
 
   allRayLengths = map(lambda x: rayLength(x), filter(lambda x: x != None, rays))
   normalized = interp1d([min(allRayLengths), max(allRayLengths)], [0, 255])
+  minL, maxL = min(allRayLengths), max(allRayLengths)
   for ray in rays:
     for pixel in ray:
-      swt[pixel[0], pixel[1]] = min(normalized(rayLength(ray)), swt[pixel[0], pixel[1]])
+      swt[pixel[0], pixel[1]] = min(normalize(rayLength(ray), minL, maxL, 0, 255), swt[pixel[0], pixel[1]])
 
   return [swt, rays]
+
+def normalize(value, oldMin, oldMax, newMin, newMax):
+  """ interpolation function from http://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
+  arguments -- 
+  value: value you are mapping from
+  oldmin, oldmax: extrema of domain
+  newmin, newmax: extrema of range
+
+  return --
+  value mapped to new range
+  """
+  return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
+
 
 def castRay((row, column), angles, edgeIndices, maxRayLength, direction):
   """ Returns length of the ray
