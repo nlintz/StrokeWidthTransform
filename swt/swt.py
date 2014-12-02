@@ -79,10 +79,10 @@ def castRays(edges, angles, direction, maxRayLength=100):
   edgeIndices = zip(nonZeroEdges[0], nonZeroEdges[1])
   edgeLookup = set(edgeIndices)
 
-  pool = Pool(processes=4)
+  pool = Pool(processes=8)
   cp = partial(castProcess, angles, edgeLookup, maxRayLength, direction)
   t.start('multiprocess')
-  results = pool.map(cp, edgeIndices)
+  results = pool.map(cp, edgeIndices, len(edgeIndices)/2)
   t.stop('multiprocess')
   # print len(filter(lambda x:x!= None, results)), len(results)
 
@@ -93,6 +93,14 @@ def castRays(edges, angles, direction, maxRayLength=100):
       if len(ray) > 1:
         rays.append(ray)
   t.stop('single process')
+
+  t.start('list comp')
+  rays = filter(lambda x: len(x) > 1,
+      filter(lambda x:x!=None, 
+      [castRay((row,column), angles, edgeLookup, maxRayLength, direction) 
+        for (row, column) in edgeIndices]
+      ))
+  t.stop('list comp')
 
   allRayLengths = map(lambda x: rayLength(x), filter(lambda x: x != None, rays))
   

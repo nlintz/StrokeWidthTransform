@@ -8,7 +8,7 @@ import math
 from profiler import *
 
 def test_profileSWT():
-  img = cv2.imread('036.jpg',0)
+  img = cv2.imread('billboard.jpg',0)
   swt_pos = swt.strokeWidthTransform(img, 1)
 
 def test_imageSWT():
@@ -54,4 +54,4 @@ def test_gradient():
   print grad[:,30] * (360/(math.pi * 2))
 
 if __name__ == "__main__":
-  test_imageSWT()
+  test_profileSWT()
