@@ -8,8 +8,13 @@ import math
 from profiler import *
 
 def test_profileSWT():
-  img = cv2.imread('billboard.jpg',0)
-  swt_pos = swt.strokeWidthTransform(img, 1)
+  imgs = ['036.jpg', 'billboard-cropped.jpg',
+   'billboard.jpg', 'sofsign.jpg', 'traffic.jpg']
+
+  for imgname in imgs:
+    img = cv2.imread(imgname,0)
+    print 'Timing: ' + imgname
+    swt_pos = swt.strokeWidthTransform(img, 1)
 
 def test_imageSWT():
   filename = '036.jpg'

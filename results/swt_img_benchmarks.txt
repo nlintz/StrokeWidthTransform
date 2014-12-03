@@ -1,0 +1,29 @@
+Timing: 036.jpg
+multiprocess start
+multiprocess ran - Time Elapsed: 3.450937 s
+single process start
+single process ran - Time Elapsed: 2.654990 s
+
+Timing: billboard-cropped.jpg
+multiprocess start
+multiprocess ran - Time Elapsed: 0.327305 s
+single process start
+single process ran - Time Elapsed: 0.346880 s
+
+Timing: billboard.jpg
+multiprocess start
+multiprocess ran - Time Elapsed: 6.308556 s
+single process start
+single process ran - Time Elapsed: 7.686914 s
+
+Timing: sofsign.jpg
+multiprocess start
+multiprocess ran - Time Elapsed: 1.533666 s
+single process start
+single process ran - Time Elapsed: 1.427003 s
+
+Timing: traffic.jpg
+multiprocess start
+multiprocess ran - Time Elapsed: 0.438128 s
+single process start
+single process ran - Time Elapsed: 0.311239 s

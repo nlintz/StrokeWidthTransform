@@ -5,11 +5,8 @@ Developed by Diana Vermilya and Nathan Lintz
 
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
 import math
 import copy
-import random
-from scipy.interpolate import interp1d
 from multiprocessing import Pool
 from functools import partial
 from profiler import *
@@ -46,7 +43,7 @@ def refineRays(swt, rays):
     refined swt image
 
   """
-  swt = copy.deepcopy(swt)
+  swt = copy.deepcopy(swt) # TODO: Do we need a deepcopy here?
   for ray in rays:
     medianLength = np.median(map(lambda x: swt[x[0]][x[1]], ray))
     for pixel in ray:
@@ -79,12 +76,13 @@ def castRays(edges, angles, direction, maxRayLength=100):
   edgeIndices = zip(nonZeroEdges[0], nonZeroEdges[1])
   edgeLookup = set(edgeIndices)
 
-  pool = Pool(processes=8)
+  NUM_PROC = 4
+  pool = Pool(processes=NUM_PROC)
   cp = partial(castProcess, angles, edgeLookup, maxRayLength, direction)
   t.start('multiprocess')
-  results = pool.map(cp, edgeIndices, len(edgeIndices)/2)
+  results = pool.map(cp, edgeIndices, len(edgeIndices)/NUM_PROC)
+  print len(filter(lambda x:x!= None, results))
   t.stop('multiprocess')
-  # print len(filter(lambda x:x!= None, results)), len(results)
 
   t.start('single process')
   for (row, column) in edgeIndices:
@@ -92,15 +90,8 @@ def castRays(edges, angles, direction, maxRayLength=100):
     if ray:
       if len(ray) > 1:
         rays.append(ray)
+  print len(rays)
   t.stop('single process')
-
-  t.start('list comp')
-  rays = filter(lambda x: len(x) > 1,
-      filter(lambda x:x!=None, 
-      [castRay((row,column), angles, edgeLookup, maxRayLength, direction) 
-        for (row, column) in edgeIndices]
-      ))
-  t.stop('list comp')
 
   allRayLengths = map(lambda x: rayLength(x), filter(lambda x: x != None, rays))
   
@@ -126,11 +117,10 @@ def normalize(value, oldMin, oldMax, newMin, newMax):
   """
   return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
 
-
-def castRay((row, column), angles, edgeIndices, maxRayLength, direction):
+def castRay(startPixel, angles, edgeIndices, maxRayLength, direction):
   """ Returns length of the ray
   arguments --
-  (row, column): rays starting position
+  startPixel: (row, column) rays starting position
   angles: result of sobel operator
   edgeIndices: indices of edge pixels in image
   maxRayLength: maximum length of ray in pixels
@@ -139,6 +129,7 @@ def castRay((row, column), angles, edgeIndices, maxRayLength, direction):
   return -- 
   an array of pixels if valid ray or None
   """
+  row, column = startPixel
   height, width = angles.shape
   rayLength = 1
   rayDirection = angles[row][column]
