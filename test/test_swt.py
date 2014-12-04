@@ -17,12 +17,13 @@ def test_profileSWT():
     swt_pos = swt.strokeWidthTransform(img, 1)
 
 def test_imageSWT():
-  filename = '036.jpg'
+  filename = 'traffic.jpg'
   img = cv2.imread(filename,0)
   B,G,R = cv2.split(cv2.imread(filename,1))
   img_color = cv2.merge((R,G,B))
   swt_pos = swt.strokeWidthTransform(img, 1)
   swt_pos_dilated = 255 - cv2.dilate(255 - swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 2)
+  # print swt_pos_dilated[556][276], swt_pos_dilated[217][450]
   swt_neg = swt.strokeWidthTransform(img, -1)
   swt_neg_dilated = 255 - cv2.dilate(255 - swt_neg, kernel = np.ones((2,2),np.uint8), iterations = 2)
 
@@ -59,4 +60,4 @@ def test_gradient():
   print grad[:,30] * (360/(math.pi * 2))
 
 if __name__ == "__main__":
-  test_profileSWT()
+  test_imageSWT()

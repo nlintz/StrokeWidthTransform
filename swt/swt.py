@@ -45,7 +45,8 @@ def refineRays(swt, rays):
   """
   swt = copy.deepcopy(swt) # TODO: Do we need a deepcopy here?
   for ray in rays:
-    medianLength = np.median(map(lambda x: swt[x[0]][x[1]], ray))
+    medianLength = np.median(map(lambda x: swt[x[0]][x[1]], ray)) # Test Min, might work better
+    # medianLength = np.min(map(lambda x: swt[x[0]][x[1]], ray))
     for pixel in ray:
       if swt[pixel[0]][pixel[1]] > medianLength:
         swt[pixel[0]][pixel[1]] = medianLength
@@ -76,22 +77,21 @@ def castRays(edges, angles, direction, maxRayLength=100):
   edgeIndices = zip(nonZeroEdges[0], nonZeroEdges[1])
   edgeLookup = set(edgeIndices)
 
-  NUM_PROC = 4
-  pool = Pool(processes=NUM_PROC)
-  cp = partial(castProcess, angles, edgeLookup, maxRayLength, direction)
-  t.start('multiprocess')
-  results = pool.map(cp, edgeIndices, len(edgeIndices)/NUM_PROC)
-  print len(filter(lambda x:x!= None, results))
-  t.stop('multiprocess')
+  # NUM_PROC = 4
+  # pool = Pool(processes=NUM_PROC)
+  # cp = partial(castProcess, angles, edgeLookup, maxRayLength, direction)
+  # t.start('multiprocess')
+  # results = pool.map(cp, edgeIndices, len(edgeIndices)/NUM_PROC)
+  # print len(filter(lambda x:x!= None, results))
+  # t.stop('multiprocess')
 
-  t.start('single process')
+  # t.start('single process')
   for (row, column) in edgeIndices:
     ray = castRay((row,column), angles, edgeLookup, maxRayLength, direction)
     if ray:
       if len(ray) > 1:
         rays.append(ray)
-  print len(rays)
-  t.stop('single process')
+  # t.stop('single process')
 
   allRayLengths = map(lambda x: rayLength(x), filter(lambda x: x != None, rays))
   
