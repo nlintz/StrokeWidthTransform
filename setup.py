@@ -7,4 +7,7 @@ setup(
     Extension("swt.fastRay",
     ["swt/fastRay.pyx"],
   ),
+    Extension("swt.fastConnectedComponents",
+      ['swt/fastConnectedComponents.pyx'],
+  )
 ])

@@ -23,7 +23,6 @@ def test_imageSWT():
   img_color = cv2.merge((R,G,B))
   swt_pos = swt.strokeWidthTransform(img, 1)
   swt_pos_dilated = 255 - cv2.dilate(255 - swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 2)
-  # print swt_pos_dilated[556][276], swt_pos_dilated[217][450]
   swt_neg = swt.strokeWidthTransform(img, -1)
   swt_neg_dilated = 255 - cv2.dilate(255 - swt_neg, kernel = np.ones((2,2),np.uint8), iterations = 2)
 

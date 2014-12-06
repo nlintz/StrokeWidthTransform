@@ -26,13 +26,7 @@ def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   edges = cv2.Canny(img, 100, 300)
   thetas = gradient(img, edges)
   
-  # t.start('single process - python')
-  # firstPass, rays = castRays(edges, thetas, direction)
-  # t.stop('single process - python')
-
-  t.start('single process - cython')
   firstPass, rays = fastRay.castRays(edges, thetas, direction)
-  t.stop('single process - cython')
 
   if rays == None:
     return firstPass
