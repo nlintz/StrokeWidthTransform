@@ -1,6 +1,6 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-import swt
+import swt.swt as swt
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
@@ -12,12 +12,12 @@ def test_profileSWT():
    'billboard.jpg', 'sofsign.jpg', 'traffic.jpg']
 
   for imgname in imgs:
-    img = cv2.imread(imgname,0)
+    img = cv2.imread('test/'+imgname,0)
     print 'Timing: ' + imgname
     swt_pos = swt.strokeWidthTransform(img, 1)
 
 def test_imageSWT():
-  filename = 'traffic.jpg'
+  filename = 'test/billboard.jpg'
   img = cv2.imread(filename,0)
   B,G,R = cv2.split(cv2.imread(filename,1))
   img_color = cv2.merge((R,G,B))

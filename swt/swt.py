@@ -10,6 +10,7 @@ import copy
 from multiprocessing import Pool
 from functools import partial
 from profiler import *
+import fastRay
 
 t = Timer()
 def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
@@ -24,8 +25,15 @@ def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   """
   edges = cv2.Canny(img, 100, 300)
   thetas = gradient(img, edges)
-  firstPass, rays = castRays(edges, thetas, direction)
   
+  # t.start('single process - python')
+  # firstPass, rays = castRays(edges, thetas, direction)
+  # t.stop('single process - python')
+
+  t.start('single process - cython')
+  firstPass, rays = fastRay.castRays(edges, thetas, direction)
+  t.stop('single process - cython')
+
   if rays == None:
     return firstPass
   
@@ -84,7 +92,6 @@ def castRays(edges, angles, direction, maxRayLength=100):
   # results = pool.map(cp, edgeIndices, len(edgeIndices)/NUM_PROC)
   # print len(filter(lambda x:x!= None, results))
   # t.stop('multiprocess')
-
   # t.start('single process')
   for (row, column) in edgeIndices:
     ray = castRay((row,column), angles, edgeLookup, maxRayLength, direction)
