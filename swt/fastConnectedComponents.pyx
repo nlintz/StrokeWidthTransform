@@ -4,7 +4,7 @@ def bfs(img, int rows, int cols):
   # q = Queue.Queue()
   q = []
   enqueued = {}
-  tags = [[]]
+  tags = []
   
   cdef int tag_count = 0
   cdef int x, y, child_x, child_y, i, j, color
@@ -14,10 +14,10 @@ def bfs(img, int rows, int cols):
     for j in range(cols):
       first_pix  = (i, j)
       if not first_pix in enqueued:
+        tags.append([])
         tags[tag_count] = []
         q.append(first_pix)
         enqueued[first_pix] = True
-
         while len(q) > 0:  
           [y,x] = q.pop(0)
           color = img[y, x]
@@ -34,7 +34,6 @@ def bfs(img, int rows, int cols):
                   enqueued[pix] = True
           tags[tag_count].append((y, x, color))
         tag_count += 1
-        tags.append([])
   return tags
 
 cdef float compute_b_shade(int color, float offset):

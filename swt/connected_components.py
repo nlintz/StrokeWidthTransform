@@ -6,14 +6,13 @@ Developed by Diana Vermilya and Nathan Lintz
 import cv2
 import Queue
 import numpy as np
-import math
+import math, random
 from matplotlib import pyplot as plt
 import copy
 from profiler import *
 import fastConnectedComponents
 
 t = Timer()
-
 
 def generateListOfAllPixels(rows, cols):
 	all_pixels = []
@@ -34,7 +33,6 @@ def connectComponents(img):
 	# t.start('python')
 	# components = bfs(img, all_pixels, rows, cols)
 	# t.stop('python')
-
 	return components
 
 def bfs(img, all_pixels, rows, cols):
@@ -66,13 +64,15 @@ def bfs(img, all_pixels, rows, cols):
 
 def connectedComponentsToImg(swt, connectComponents, rows, cols, multicolor=False):
 	new_image = np.zeros((rows, cols,3), np.uint8)
+
 	for i, v in enumerate(connectComponents):
-		color = meanComponentColor(swt, v)
+		avg_color = meanComponentColor(swt, v)
+		random_color = (255*random.random(), 255*random.random(), 255*random.random())
 		for y, x, swt[y,x] in v:
 			if multicolor:
-				new_image[y,x] = (255-i, i*10, 100)
+				new_image[y,x] = random_color
 			else:
-				new_image[y, x] = color
+				new_image[y, x] = avg_color
 	return new_image
 
 def meanComponentColor(swt, component):
@@ -80,7 +80,6 @@ def meanComponentColor(swt, component):
 	if len(componentColors):
 		return sum(componentColors)/len(component)
 	return 0
-
 
 def thresholded_cc():
 	swt = cv2.imread('sample_swt.png',0)
@@ -171,10 +170,8 @@ def applyFilters(connectedComponents, bounds_map, filterNames):
 	}
 
 	for name in filterNames:
-		connectedComponents = filters[filterNames](connectedComponents, bounds_map)
+		connectedComponents = filters[name](connectedComponents, bounds_map)
 	return connectedComponents
-
-
 
 
 if __name__ == "__main__":

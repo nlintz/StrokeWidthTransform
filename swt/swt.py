@@ -117,6 +117,7 @@ def normalize(value, oldMin, oldMax, newMin, newMax):
   value mapped to new range
   """
   return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
+  # return value
 
 def castRay(startPixel, angles, edgeIndices, maxRayLength, direction):
   """ Returns length of the ray
@@ -170,7 +171,8 @@ def angleDifference(angle1, angle2):
   return -- 
   distance between the angles in radians
   """
-  return abs(abs(angle1 - angle2) - math.pi)
+  # return abs(abs(angle1 - angle2) - math.pi)
+  return math.atan2(math.sin(angle1-angle2), math.cos(angle1-angle2))
 
 def rayLength(ray):
   """ Returns length of the ray
