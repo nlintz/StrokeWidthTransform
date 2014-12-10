@@ -18,7 +18,7 @@ def test_letterCombinator():
   rows, cols = img.shape
 
   # Compute SWT
-  swt_pos = swt.strokeWidthTransform(img, -1)
+  swt_pos = swt.strokeWidthTransform(img, 1)
   swt_pos_dilated = 255 - cv2.dilate(255 - swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 1)
   
   SAMPLE = swt_pos
@@ -35,7 +35,7 @@ def test_letterCombinator():
   letters = [lc.Letter(x) for x in letterCandidates_arr]
 
   # Combine Letters
-  letterPairs = lc.generateLetterPairs(letters)
+  letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
   letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
   letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
   letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
@@ -43,18 +43,8 @@ def test_letterCombinator():
   ccImg = cc.connectedComponentsToImg(swt_pos_dilated, letterCandidates_arr, rows, cols, True)
 
   letterChains = [lc.LetterChain.chainFromPair(pair) for pair in letterPairs]
-  
-  mergedChains = lc.findConnectedChains(letterChains)
 
-  secondMerge = lc.findConnectedChains(mergedChains)
-
-  thirdMerge = lc.findConnectedChains(secondMerge)
-
-  fourthMerge = lc.findConnectedChains(thirdMerge)
-
-  for chain in thirdMerge:
-    # for letter in chain.letters:
-    draw_letter_rect(ccImg, chain.chainToRegion())
+  lines = lc.LetterCombinator.findLines(letterChains)
 
   plt.imshow(ccImg)
   plt.show()
