@@ -24,6 +24,7 @@ def strokeWidthTransform(img, direction=1, cannyThresholds=(100,300)):
   2d grayscale array where each pixel's value  is its stroke width 
   """
   edges = cv2.Canny(img, 100, 300)
+
   thetas = gradient(img, edges)
   
   firstPass, rays = fastRay.castRays(edges, thetas, direction)

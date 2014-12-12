@@ -157,43 +157,71 @@ class LetterCombinator(object):
     letterPairs = list(itertools.combinations(letters, 2))
     return [LetterPair(x,y) for (x,y) in letterPairs]
 
-  @staticmethod
-  def findConnectedChains(letterChains):
-    if len(letterChains) == 1:
-      return (letterChains, False)
-
-    didMerge = False
-    connectedChains = []
-
-    for i in range(len(letterChains)):
-      for j in range(len(letterChains)):
-        if i != j:
-          chainA = letterChains[i]
-          chainB = letterChains[j]
-          if not chainA.hasMerged and not chainB.hasMerged:
-            if chainA.sharesBounds(chainB) and swt.angleDifference(chainA.direction, chainB.direction) < math.pi/2.0:
-              didMerge = True
-              chainA.mergeWithChain(chainB)
-              connectedChains.append(chainA)
-            if len(chainA.letters) > 2:
-              connectedChains.append(chainA)
-            if len(chainB.letters) > 2:
-              connectedChains.append(chainB)
-
-    connectedChains = filter(lambda x:len(x.letters) > 2, connectedChains)
-
-    for chain in connectedChains:
-      chain.hasMerged = False
-    return (connectedChains, didMerge)
-
-  @staticmethod
+  @staticmethod 
   def findLines(letterChains):
-    foundAllChains = False
-    while not foundAllChains:
-      letterChains, didMerge = LetterCombinator.findConnectedChains(letterChains)
+    lines = []
+    for chain in letterChains:
+      didMerge = False
+      lettersIndex = set(chain.letters)
+      for i in range(len(lines)):
+        for letter in lines[i].letters:
+          if letter in lettersIndex:
+            didMerge = True
+            lines[i].mergeWithChain(chain)
       if not didMerge:
-        foundAllChains = True
-    return letterChains
+        lines.append(chain)
+    return lines
+
+  @staticmethod
+  def findAllLines(letterChains):
+    lines = LetterCombinator.findLines(letterChains)
+    length = len(lines)
+    while True:
+      lines = LetterCombinator.findLines(lines)
+
+      if length == len(lines):
+        break
+      length = len(lines)
+    return lines
+
+
+  # @staticmethod
+  # def findConnectedChains(letterChains):
+  #   if len(letterChains) == 1:
+  #     return (letterChains, False)
+
+  #   didMerge = False
+  #   connectedChains = []
+
+  #   for i in range(len(letterChains)):
+  #     for j in range(len(letterChains)):
+  #       if i != j:
+  #         chainA = letterChains[i]
+  #         chainB = letterChains[j]
+  #         if not chainA.hasMerged and not chainB.hasMerged:
+  #           if chainA.sharesBounds(chainB) and swt.angleDifference(chainA.direction, chainB.direction) < math.pi/2.0:
+  #             didMerge = True
+  #             chainA.mergeWithChain(chainB)
+  #             connectedChains.append(chainA)
+  #           if len(chainA.letters) > 2:
+  #             connectedChains.append(chainA)
+  #           if len(chainB.letters) > 2:
+  #             connectedChains.append(chainB)
+
+  #   connectedChains = filter(lambda x:len(x.letters) > 2, connectedChains)
+
+  #   for chain in connectedChains:
+  #     chain.hasMerged = False
+  #   return (connectedChains, didMerge)
+
+  # @staticmethod
+  # def findLines(letterChains):
+  #   foundAllChains = False
+  #   while not foundAllChains:
+  #     letterChains, didMerge = LetterCombinator.findConnectedChains(letterChains)
+  #     if not didMerge:
+  #       foundAllChains = True
+  #   return letterChains
 
 
 

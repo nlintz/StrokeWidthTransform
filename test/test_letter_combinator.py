@@ -10,11 +10,33 @@ import math, random
 from profiler import *
 import itertools
 
-def test_generatePerms():
-  assert [(1, 2), (1, 3), (2, 3)] == list(lc.componentPairs([1,2,3]))
+def test_find_letters():
+  img = cv2.imread('test/stopsign.jpg', 0)
+  rows, cols = img.shape
+
+  # Compute SWT
+  swt_pos = swt.strokeWidthTransform(img, -1)
+  
+  SAMPLE = swt_pos
+
+  # Generate Regions
+  regions = cc.connectComponents(SAMPLE)
+  regions_dict = regions_to_dict(regions)
+  bounds = cc.map_to_bounds(regions_dict)
+
+  # Filter Letter Candidates
+  letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders', 'aspect_ratio_and_diameter'])
+  letterCandidates_arr = filter(lambda x: len(x) > 0, regions_to_arr(letterCandidates_dict))
+
+  letters = [lc.Letter(x) for x in letterCandidates_arr]
+
+  # for letter in letters:
+    # draw_letter_rect(swt_pos, letter)
+  plt.imshow(swt_pos, 'gray')
+  plt.show()
 
 def test_letterCombinator():
-  img = cv2.imread('test/stopsign.jpg', 0)
+  img = cv2.imread('test/race_for_life.jpg', 0)
   rows, cols = img.shape
 
   # Compute SWT
@@ -44,7 +66,10 @@ def test_letterCombinator():
 
   letterChains = [lc.LetterChain.chainFromPair(pair) for pair in letterPairs]
 
-  lines = lc.LetterCombinator.findLines(letterChains)
+  lines = lc.LetterCombinator.findAllLines(letterChains)
+  for chain in lines:
+    if len(chain.letters) > 2:
+      draw_letter_rect(ccImg, chain.chainToRegion())
 
   plt.imshow(ccImg)
   plt.show()
@@ -64,7 +89,10 @@ def regions_to_arr(regions):
 def draw_letter_rect(img, letter):
   # if len(region) == 0:
   #   return
-  rows, cols, _ = img.shape
+  if len(img.shape) == 3:
+    rows, cols, _ = img.shape
+  else:
+    rows, cols = img.shape
   box = letter.bounds()
   (miny, minx), (maxy, maxx) = box
   lower_left = (minx, miny)

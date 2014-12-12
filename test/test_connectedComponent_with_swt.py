@@ -10,11 +10,11 @@ from profiler import *
 
 @timeit
 def test_cc_with_swt():
-  img = cv2.imread('test/traffic.jpg', 0)
+  img = cv2.imread('test/stopsign.jpg', 0)
   swt_pos = swt.strokeWidthTransform(img, 1)
   swt_pos_dilated = 255 - cv2.dilate(255 - swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 2)
-  regions = cc.connectComponents(swt_pos_dilated)
-  ccImg = cc.connectedComponentsToImg(swt_pos_dilated, regions, img.shape[0], img.shape[1])
+  regions = cc.connectComponents(swt_pos)
+  ccImg = cc.connectedComponentsToImg(swt_pos, regions, img.shape[0], img.shape[1])
 
   plt.imshow(ccImg)
   plt.show()
