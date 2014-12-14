@@ -102,11 +102,28 @@ class LetterChain(object):
       pair.letterA.center()[1] - pair.letterB.center()[1])
     return letterChain
 
-  def head(self):
-    return self.letters[0]
-
-  def tail(self):
-    return self.letters[-1]
+  def bounds(self):
+    minX = None
+    maxX = None
+    minY = None
+    maxY = None
+    for letter in self.letters:
+      ((min_y, min_x), (max_y, max_x)) = letter.bounds()
+      if minX == None:
+        minX = min_x
+        maxX = max_x
+        minY = min_y
+        maxY = max_y
+      else:
+        if min_y < minY:
+          minY = min_y
+        if min_x < minX:
+          minX = min_x
+        if max_y > maxY:
+          maxY = max_y
+        if max_x > maxX:
+          maxX = max_x
+    return ((minY, minX), (maxY, maxX))
 
   def chainToRegion(self):
     region = []
@@ -114,44 +131,23 @@ class LetterChain(object):
       region += letter.letterPixels
     return Letter(region)
 
-  def make_merge_comparator(self,head):
-    def compare(x, y):
-        if x.distanceToLetter(head) > y.distanceToLetter(head):
-            return 1
-        elif x.distanceToLetter(head) < y.distanceToLetter(head):
-            return -1
-        else:
-            return 0
-    return compare
-
   def mergeWithChain(self, chain):
+    lettersIndex = set(self.letters)
     for elem in chain.letters:
-      if elem not in self.letters:
+      if elem not in lettersIndex:
         self.letters.append(elem)
 
-    self.letters = sorted(self.letters, cmp=self.make_merge_comparator(self.head()), reverse=True)
-    self.hasMerged = True
-    chain.hasMerged = True
-
-  def sharesEnd(self, chain): # TODO - Change to SharesBoundingBox
-    if self.head() == chain.head():
-      return True
-    if self.head() == chain.tail():
-      return True
-    if self.tail() == chain.head():
-      return True
-    if self.tail() == chain.tail():
-      return True
-    return False
-
   def sharesBounds(self, chain):
-    for letter in chain.letters:
-      if letter in self.letters:
-        return True
-    return False
+    selfMinY, selfMinX, selfMaxY, selfMaxX = self.bounds()
+    otherMinY, otherMinX, otherMaxY, otherMaxX = chain.bounds()
+    if selfMinX > otherMaxX or otherMinX > selfMaxX:
+      return False
+    if selfMinY > otherMaxY or otherMinY > selfMaxY:
+      return False
+    return True
+
 
 class LetterCombinator(object):
-
   @staticmethod
   def generateLetterPairs(letters):
     letterPairs = list(itertools.combinations(letters, 2))
@@ -162,12 +158,10 @@ class LetterCombinator(object):
     lines = []
     for chain in letterChains:
       didMerge = False
-      lettersIndex = set(chain.letters)
-      for i in range(len(lines)):
-        for letter in lines[i].letters:
-          if letter in lettersIndex:
-            didMerge = True
-            lines[i].mergeWithChain(chain)
+      for i, line in enumerate(lines):
+        if line.sharesBounds(chain):
+          didMerge = True
+          lines[i].mergeWithChain(chain)
       if not didMerge:
         lines.append(chain)
     return lines
@@ -183,45 +177,3 @@ class LetterCombinator(object):
         break
       length = len(lines)
     return lines
-
-
-  # @staticmethod
-  # def findConnectedChains(letterChains):
-  #   if len(letterChains) == 1:
-  #     return (letterChains, False)
-
-  #   didMerge = False
-  #   connectedChains = []
-
-  #   for i in range(len(letterChains)):
-  #     for j in range(len(letterChains)):
-  #       if i != j:
-  #         chainA = letterChains[i]
-  #         chainB = letterChains[j]
-  #         if not chainA.hasMerged and not chainB.hasMerged:
-  #           if chainA.sharesBounds(chainB) and swt.angleDifference(chainA.direction, chainB.direction) < math.pi/2.0:
-  #             didMerge = True
-  #             chainA.mergeWithChain(chainB)
-  #             connectedChains.append(chainA)
-  #           if len(chainA.letters) > 2:
-  #             connectedChains.append(chainA)
-  #           if len(chainB.letters) > 2:
-  #             connectedChains.append(chainB)
-
-  #   connectedChains = filter(lambda x:len(x.letters) > 2, connectedChains)
-
-  #   for chain in connectedChains:
-  #     chain.hasMerged = False
-  #   return (connectedChains, didMerge)
-
-  # @staticmethod
-  # def findLines(letterChains):
-  #   foundAllChains = False
-  #   while not foundAllChains:
-  #     letterChains, didMerge = LetterCombinator.findConnectedChains(letterChains)
-  #     if not didMerge:
-  #       foundAllChains = True
-  #   return letterChains
-
-
-
