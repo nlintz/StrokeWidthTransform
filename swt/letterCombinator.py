@@ -1,6 +1,3 @@
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-# import swt.swt as swt
 import connected_components as cc
 import numpy as np
 from matplotlib import pyplot as plt
@@ -138,8 +135,8 @@ class LetterChain(object):
         self.letters.append(elem)
 
   def sharesBounds(self, chain):
-    selfMinY, selfMinX, selfMaxY, selfMaxX = self.bounds()
-    otherMinY, otherMinX, otherMaxY, otherMaxX = chain.bounds()
+    (selfMinY, selfMinX), (selfMaxY, selfMaxX) = self.bounds()
+    (otherMinY, otherMinX), (otherMaxY, otherMaxX) = chain.bounds()
     if selfMinX > otherMaxX or otherMinX > selfMaxX:
       return False
     if selfMinY > otherMaxY or otherMinY > selfMaxY:

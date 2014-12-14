@@ -1,7 +1,7 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-import swt.swt as swt
-import swt.connected_components as cc
+import swt as swt
+import connected_components as cc
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2

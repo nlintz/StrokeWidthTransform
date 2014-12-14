@@ -1,7 +1,7 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-import swt.fastRay as fastRay
-import swt.swt as swt
+import fastRay as fastRay
+import swt as swt
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
