@@ -39,9 +39,6 @@ class TextLocalizer(object):
 
     letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
     filteredLetterPairs = TextLocalizer.filterLetterPairs(letterPairs)
-    # letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
-    # letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
-    # letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
 
     letterChains = [lc.LetterChain.chainFromPair(pair) for pair in filteredLetterPairs]
 

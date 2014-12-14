@@ -12,7 +12,7 @@ import itertools
 import textLocalizer as tl
 
 def test_localizeText():
-  img = cv2.imread('test/images/emergency_stop.jpg', 0)
+  img = cv2.imread('test/images/uk_dance_prototype_inspired_records.jpg', 0)
   rows, cols = img.shape
 
   renderer = tl.LetterRenderer()
@@ -32,7 +32,7 @@ def test_localizeText():
   plt.show()
 
 def test_findLetters():
-  img = cv2.imread('test/images/stopsign.jpg', 0)
+  img = cv2.imread('test/images/uk_dance_prototype_inspired_records.jpg', 0)
   rows, cols = img.shape
   new_img = np.zeros((rows, cols, 3), np.uint8)
 
@@ -41,6 +41,8 @@ def test_findLetters():
   letters = localizer.findLetters(img, -1, ['size', 'borders'])
 
   renderer.draw_letters(new_img, letters)
+  for letter in letters:
+    renderer.draw_letter_rect(new_img, letter)
   plt.imshow(new_img)
   plt.show()
 
