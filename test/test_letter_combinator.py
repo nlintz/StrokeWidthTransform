@@ -58,11 +58,12 @@ def test_letterCombinator():
 
   # Combine Letters
   letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
+
   letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
   letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
   letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
 
-  ccImg = cc.connectedComponentsToImg(swt_pos_dilated, letterCandidates_arr, rows, cols, True)
+  ccImg = cc.connectedComponentsToImg(SAMPLE, letterCandidates_arr, rows, cols, True)
 
   letterChains = [lc.LetterChain.chainFromPair(pair) for pair in letterPairs]
 

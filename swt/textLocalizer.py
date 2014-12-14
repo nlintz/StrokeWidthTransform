@@ -22,9 +22,10 @@ class TextLocalizer(object):
     bounds = cc.map_to_bounds(regions_dict)
 
     # Filter Letter Candidates
-    letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size'])
+    letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders', 'aspect_ratio_and_diameter'])
     letterCandidates_arr = filter(lambda x: len(x) > 0, TextLocalizer.regions_to_arr(letterCandidates_dict))
     letters = [lc.Letter(x) for x in letterCandidates_arr]
+
     if returnswt:
       return (letters, strokeWidthTranform, letterCandidates_arr)
     return letters
@@ -34,10 +35,9 @@ class TextLocalizer(object):
     rows, cols = img.shape
 
     letters, strokeWidthTranform, letterCandidates_arr = TextLocalizer.findLetters(img, direction, True)  
+    print len(letters)
     ccImg = cc.connectedComponentsToImg(strokeWidthTranform, letterCandidates_arr, rows, cols, True)
-    # for letter in letters:
-      # LetterRenderer.draw_letter_rect(ccImg, letter)
-    # Combine Letters
+
     letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
     letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
     letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
