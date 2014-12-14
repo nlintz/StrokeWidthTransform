@@ -5,7 +5,7 @@ import cv2
 import math
 from profiler import *
 import itertools
-import swt as swt
+from swt import swt
 
 class Letter(object):
   def __init__(self, letterPixels):
@@ -156,7 +156,7 @@ class LetterCombinator(object):
     for chain in letterChains:
       didMerge = False
       for i, line in enumerate(lines):
-        if line.sharesBounds(chain):
+        if line.sharesBounds(chain) and swt.angleDifference(line.direction, chain.direction) < math.pi/2:
           didMerge = True
           lines[i].mergeWithChain(chain)
       if not didMerge:
