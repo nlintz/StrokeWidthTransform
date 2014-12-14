@@ -10,9 +10,14 @@ import itertools
 
 class TextLocalizer(object):
   @staticmethod
-  def findLetters(img, direction, returnswt=False):
-    rows, cols = img.shape
-    # Compute SWT
+  def filterLetterPairs(letterPairs):
+    letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
+    letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
+    letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
+    return letterPairs
+
+  @staticmethod
+  def findLetters(img, direction, letterFilters):
     strokeWidthTranform = swt.strokeWidthTransform(img, direction)
     # Generate Regions
     regions = cc.connectComponents(strokeWidthTranform)
@@ -20,34 +25,30 @@ class TextLocalizer(object):
     bounds = cc.map_to_bounds(regions_dict)
 
     # Filter Letter Candidates
-    letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders', 'aspect_ratio_and_diameter'])
+    letterCandidates_dict = cc.applyFilters(regions_dict, bounds, letterFilters)
     letterCandidates_arr = filter(lambda x: len(x) > 0, TextLocalizer.regions_to_arr(letterCandidates_dict))
     letters = [lc.Letter(x) for x in letterCandidates_arr]
+    letters = filter(lambda x: x.height() > 0 and x.width() > 0, letters)
 
-    if returnswt:
-      return (letters, strokeWidthTranform, letterCandidates_arr)
     return letters
 
   @staticmethod
-  def findLetterChains(img, direction=-1):
-    rows, cols = img.shape
+  def findLines(img, direction=-1, letterFilters=('size', 'borders', 'aspect_ratio_and_diameter')):
 
-    letters, strokeWidthTranform, letterCandidates_arr = TextLocalizer.findLetters(img, direction, True)  
-    print len(letters)
-    ccImg = cc.connectedComponentsToImg(strokeWidthTranform, letterCandidates_arr, rows, cols, True)
+    letters = TextLocalizer.findLetters(img, direction, letterFilters)  
 
     letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
-    letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
-    letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
-    letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
+    filteredLetterPairs = TextLocalizer.filterLetterPairs(letterPairs)
+    # letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
+    # letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
+    # letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
 
-    letterChains = [lc.LetterChain.chainFromPair(pair) for pair in letterPairs]
+    letterChains = [lc.LetterChain.chainFromPair(pair) for pair in filteredLetterPairs]
 
     lines = lc.LetterCombinator.findAllLines(letterChains)
-    for chain in lines:
-      if len(chain.letters) > 2:
-        LetterRenderer.draw_letter_rect(ccImg, chain.chainToRegion())
-    return ccImg
+    validLines = filter(lambda x: len(x.letters) > 2, lines)
+
+    return validLines
 
   @staticmethod
   def regions_to_dict(regions):
@@ -63,8 +64,29 @@ class TextLocalizer(object):
       arr[i] = v
     return arr
 
-
 class LetterRenderer(object):
+  @staticmethod
+  def draw_word_line(img, line):
+    for letter in line.letters:
+      LetterRenderer.draw_letter(img, letter)
+    LetterRenderer.draw_letter_rect(img, line.chainToRegion())
+
+  @staticmethod
+  def draw_word_lines(img, lines):
+    for line in lines:
+      LetterRenderer.draw_word_line(img, line)
+
+  @staticmethod
+  def draw_letter(img, letter):
+    random_color = (255*random.random(), 255*random.random(), 255*random.random())
+    for pixel in letter.letterPixels:
+      (y, x, w) = pixel
+      img[y, x] = random_color
+
+  @staticmethod
+  def draw_letters(img, letters):
+    for letter in letters:
+      LetterRenderer.draw_letter(img, letter)
 
   @staticmethod
   def draw_letter_rect(img, letter):

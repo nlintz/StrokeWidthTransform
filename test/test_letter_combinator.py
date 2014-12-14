@@ -2,7 +2,7 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
 import letterCombinator as lc
 import connected_components as cc
-import swt as swt
+from swt import swt
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
@@ -11,11 +11,11 @@ from profiler import *
 import itertools
 
 def test_find_letters():
-  img = cv2.imread('test/stopsign.jpg', 0)
+  img = cv2.imread('test/images/emergency_stop.jpg', 0)
   rows, cols = img.shape
 
   # Compute SWT
-  swt_pos = swt.strokeWidthTransform(img, -1)
+  swt_pos = swt.strokeWidthTransform(img, 1)
   
   SAMPLE = swt_pos
 
@@ -25,13 +25,14 @@ def test_find_letters():
   bounds = cc.map_to_bounds(regions_dict)
 
   # Filter Letter Candidates
-  letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders', 'aspect_ratio_and_diameter'])
+  # letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders', 'aspect_ratio_and_diameter'])
+  letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders'])
   letterCandidates_arr = filter(lambda x: len(x) > 0, regions_to_arr(letterCandidates_dict))
 
   letters = [lc.Letter(x) for x in letterCandidates_arr]
 
-  # for letter in letters:
-    # draw_letter_rect(swt_pos, letter)
+  for letter in letters:
+    draw_letter_rect(swt_pos, letter)
   plt.imshow(swt_pos, 'gray')
   plt.show()
 
@@ -113,4 +114,4 @@ def draw_letter_center(img, letter):
 
 
 if __name__ == "__main__":
-  test_letterCombinator()
+  test_find_letters()

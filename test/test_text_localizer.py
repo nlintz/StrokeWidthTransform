@@ -12,26 +12,37 @@ import itertools
 import textLocalizer as tl
 
 def test_localizeText():
-  img = cv2.imread('test/images/ComputerScienceSmall.jpg', 0)
-  rows = img.shape[0]
-  cols = img.shape[1]
-  # renderer = tl.LetterRenderer()
-  localizer = tl.TextLocalizer()
-  # letters, strokeWidthTransform, letterCandidates_arr = localizer.findLetters(img, 1, True)
-  # ccImg = cc.connectedComponentsToImg(strokeWidthTransform, letterCandidates_arr, rows, cols, True)
-  ccImg = localizer.findLetterChains(img, 1)
-  plt.subplot(2,1,1)
-  plt.imshow(ccImg)
-  # for letter in letters:
-    # renderer.draw_letter_rect(ccImg, letter)
+  img = cv2.imread('test/images/emergency_stop.jpg', 0)
+  rows, cols = img.shape
 
-  # letters, strokeWidthTransform, letterCandidates_arr = localizer.findLetters(img, -1, True)
-  # ccImg = cc.connectedComponentsToImg(strokeWidthTransform, letterCandidates_arr, rows, cols, True)
-  ccImg = localizer.findLetterChains(img, -1)
+  renderer = tl.LetterRenderer()
+  localizer = tl.TextLocalizer()
+
+  plt.subplot(2,1,1)
+  new_img = np.zeros((rows, cols, 3), np.uint8)
+  lines = localizer.findLines(img, 1, ['size', 'borders'])
+  renderer.draw_word_lines(new_img, lines)
+  plt.imshow(new_img)
+
   plt.subplot(2,1,2)
-  plt.imshow(ccImg)
+  new_img = np.zeros((rows, cols, 3), np.uint8)
+  lines = localizer.findLines(img, -1, ['size', 'borders'])
+  renderer.draw_word_lines(new_img, lines)
+  plt.imshow(new_img)
   plt.show()
 
+def test_findLetters():
+  img = cv2.imread('test/images/stopsign.jpg', 0)
+  rows, cols = img.shape
+  new_img = np.zeros((rows, cols, 3), np.uint8)
+
+  renderer = tl.LetterRenderer()
+  localizer = tl.TextLocalizer()
+  letters = localizer.findLetters(img, -1, ['size', 'borders'])
+
+  renderer.draw_letters(new_img, letters)
+  plt.imshow(new_img)
+  plt.show()
 
 if __name__ == "__main__":
   test_localizeText()
