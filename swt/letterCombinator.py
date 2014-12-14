@@ -1,14 +1,14 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-import swt.swt as swt
-import swt.connected_components as cc
+# import swt.swt as swt
+import connected_components as cc
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
 import math
 from profiler import *
 import itertools
-import swt.swt as swt
+import swt as swt
 
 class Letter(object):
   def __init__(self, letterPixels):
