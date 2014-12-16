@@ -122,6 +122,10 @@ class LetterChain(object):
           maxX = max_x
     return ((minY, minX), (maxY, maxX))
 
+  def height(self):
+    ((minY, minX), (maxY, maxX)) = self.bounds()
+    return maxX - minX
+
   def chainToRegion(self):
     region = []
     for letter in self.letters:
@@ -156,7 +160,7 @@ class LetterCombinator(object):
     for chain in letterChains:
       didMerge = False
       for i, line in enumerate(lines):
-        if line.sharesBounds(chain) and swt.angleDifference(line.direction, chain.direction) < math.pi/2:
+        if line.sharesBounds(chain) and swt.angleDifference(line.direction, chain.direction) < math.pi:
           didMerge = True
           lines[i].mergeWithChain(chain)
       if not didMerge:

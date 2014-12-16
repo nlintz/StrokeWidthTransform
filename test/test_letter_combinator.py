@@ -37,12 +37,11 @@ def test_find_letters():
   plt.show()
 
 def test_letterCombinator():
-  img = cv2.imread('test/race_for_life.jpg', 0)
+  img = cv2.imread('test/images/rab_butler.jpg', 0)
   rows, cols = img.shape
 
   # Compute SWT
-  swt_pos = swt.strokeWidthTransform(img, 1)
-  swt_pos_dilated = 255 - cv2.dilate(255 - swt_pos, kernel = np.ones((2,2),np.uint8), iterations = 1)
+  swt_pos = swt.strokeWidthTransform(img, -1)
   
   SAMPLE = swt_pos
 
@@ -52,27 +51,73 @@ def test_letterCombinator():
   bounds = cc.map_to_bounds(regions_dict)
 
   # Filter Letter Candidates
-  letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders', 'aspect_ratio_and_diameter'])
+  letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders'])
   letterCandidates_arr = filter(lambda x: len(x) > 0, regions_to_arr(letterCandidates_dict))
 
   letters = [lc.Letter(x) for x in letterCandidates_arr]
+  letters = filter(lambda x:x.height()>0 and x.width()>0, letters)
 
   # Combine Letters
   letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
 
-  letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
+  letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(2.5), letterPairs)
   letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
-  letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
+  letterPairs = filter(lambda x: x.similarComponentDistance(2.0), letterPairs)
 
   ccImg = cc.connectedComponentsToImg(SAMPLE, letterCandidates_arr, rows, cols, True)
 
   letterChains = [lc.LetterChain.chainFromPair(pair) for pair in letterPairs]
-
   lines = lc.LetterCombinator.findAllLines(letterChains)
+
   for chain in lines:
     if len(chain.letters) > 2:
       draw_letter_rect(ccImg, chain.chainToRegion())
 
+  plt.imshow(ccImg)
+  plt.show()
+
+def test_letter_pairs():
+  img = cv2.imread('test/images/rab_butler.jpg', 0)
+  rows, cols = img.shape
+
+  # Compute SWT
+  swt_pos = swt.strokeWidthTransform(img, -1)
+  
+  SAMPLE = swt_pos
+
+  # Generate Regions
+  regions = cc.connectComponents(SAMPLE)
+  regions_dict = regions_to_dict(regions)
+  bounds = cc.map_to_bounds(regions_dict)
+
+  # Filter Letter Candidates
+  letterCandidates_dict = cc.applyFilters(regions_dict, bounds, ['size', 'borders'])
+  letterCandidates_arr = filter(lambda x: len(x) > 0, regions_to_arr(letterCandidates_dict))
+
+  letters = [lc.Letter(x) for x in letterCandidates_arr]
+  letters = filter(lambda x:x.height()>0 and x.width()>0, letters)
+
+  # Combine Letters
+  print len(letters)
+  letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
+
+  letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(2.5), letterPairs)
+  letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
+  letterPairs = filter(lambda x: x.similarComponentDistance(2.0), letterPairs)
+
+  # plt.subplot(2,1,1)
+  letterChains = [lc.LetterChain.chainFromPair(pair) for pair in letterPairs]
+  # ccImg = cc.connectedComponentsToImg(SAMPLE, letterCandidates_arr, rows, cols, True)
+  # for chain in letterChains:
+  #   draw_letter_rect(ccImg, chain.chainToRegion())
+  # plt.imshow(ccImg)
+
+  plt.subplot(2,1,2)
+  ccImg = cc.connectedComponentsToImg(SAMPLE, letterCandidates_arr, rows, cols, True)
+  lines = lc.LetterCombinator.findAllLines(letterChains)
+  for chain in lines:
+    if len(chain.letters) > 2:
+      draw_letter_rect(ccImg, chain.chainToRegion())
   plt.imshow(ccImg)
   plt.show()
 
@@ -109,9 +154,5 @@ def draw_letter_rect(img, letter):
   cv2.line(img, upper_right, lower_right, color, 2)
   cv2.line(img, upper_right, upper_left, color, 2)
 
-def draw_letter_center(img, letter):
-  cv2.circle(img, (int(letter.center()[1]), int(letter.center()[0])), 2, (255, 0, 0))
-
-
 if __name__ == "__main__":
-  test_find_letters()
+  test_letterCombinator()

@@ -1,18 +1,17 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-import letterCombinator as lc
-import connected_components as cc
 import swt as swt
+import letterCombinator as lc
+import textLocalizer as tl
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
 import math, random
 from profiler import *
 import itertools
-import textLocalizer as tl
 
 def test_localizeText():
-  img = cv2.imread('test/images/rab_butler.jpg', 0)
+  img = cv2.imread('test/images/race_for_life.jpg', 0)
   rows, cols = img.shape
 
   renderer = tl.LetterRenderer()
@@ -32,7 +31,7 @@ def test_localizeText():
   plt.show()
 
 def test_findLetters():
-  img = cv2.imread('test/images/stopsign.jpg', 0)
+  img = cv2.imread('test/images/emergency_stop.jpg', 0)
   rows, cols = img.shape
   new_img = np.zeros((rows, cols, 3), np.uint8)
 

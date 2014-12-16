@@ -107,8 +107,8 @@ cdef float normalize(float value, int oldMin, int oldMax, int newMin, int newMax
   return --
   value mapped to new range
   """
-  return value
-  # return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
+  # return value
+  return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
 
 cdef float rayLength(ray):
   """ Returns length of the ray

@@ -11,9 +11,9 @@ import itertools
 class TextLocalizer(object):
   @staticmethod
   def filterLetterPairs(letterPairs):
-    letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(), letterPairs)
+    letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(2.5), letterPairs)
     letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
-    letterPairs = filter(lambda x: x.similarComponentDistance(), letterPairs)
+    letterPairs = filter(lambda x: x.similarComponentDistance(2.0), letterPairs)
     return letterPairs
 
   @staticmethod
@@ -23,7 +23,6 @@ class TextLocalizer(object):
     regions = cc.connectComponents(strokeWidthTranform)
     regions_dict = TextLocalizer.regions_to_dict(regions)
     bounds = cc.map_to_bounds(regions_dict)
-
     # Filter Letter Candidates
     letterCandidates_dict = cc.applyFilters(regions_dict, bounds, letterFilters)
     letterCandidates_arr = filter(lambda x: len(x) > 0, TextLocalizer.regions_to_arr(letterCandidates_dict))
@@ -33,7 +32,7 @@ class TextLocalizer(object):
     return letters
 
   @staticmethod
-  def findLines(img, direction=-1, letterFilters=('size', 'borders', 'aspect_ratio_and_diameter')):
+  def findLines(img, direction=-1, letterFilters=('size', 'borders')):
 
     letters = TextLocalizer.findLetters(img, direction, letterFilters)  
 
@@ -43,9 +42,16 @@ class TextLocalizer(object):
     letterChains = [lc.LetterChain.chainFromPair(pair) for pair in filteredLetterPairs]
 
     lines = lc.LetterCombinator.findAllLines(letterChains)
-    validLines = filter(lambda x: len(x.letters) > 2, lines)
-
+    # validLines = filter(lambda x: len(x.letters) > 2, lines)
+    validLines = TextLocalizer.validateLines(lines)
     return validLines
+
+  @staticmethod
+  def validateLines(lines, heightThreshold=2.0):
+    linesWithEnoughLetters = filter(lambda x: len(x.letters) > 2, lines)
+    validLines = []
+
+    return linesWithEnoughLetters
 
   @staticmethod
   def regions_to_dict(regions):
