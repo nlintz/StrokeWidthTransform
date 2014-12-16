@@ -1,1 +1,5 @@
 *.pyc
+build
+swt/*.c
+swt/*.so
+.DS_Store
