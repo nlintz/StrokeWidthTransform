@@ -1,5 +1,6 @@
 *.pyc
 build
-swt/*.c
-swt/*.so
+lib/*.c
+lib/*.so
+lib/*.pyc
 .DS_Store
