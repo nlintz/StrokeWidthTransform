@@ -1,8 +1,8 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-import letterCombinator as lc
-import connected_components as cc
-from swt import swt
+import lib.letterCombinator as lc
+import lib.connected_components as cc
+from lib.swt import swt
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2

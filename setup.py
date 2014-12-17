@@ -4,10 +4,10 @@ from Cython.Distutils import build_ext
 setup(
   cmdclass = {'build_ext': build_ext},
   ext_modules = [
-    Extension("swt.fastRay",
-    ["swt/fastRay.pyx"],
+    Extension("lib.fastRay",
+    ["lib/fastRay.pyx"],
   ),
-    Extension("swt.fastConnectedComponents",
-      ['swt/fastConnectedComponents.pyx'],
+    Extension("lib.fastConnectedComponents",
+      ['lib/fastConnectedComponents.pyx'],
   )
 ])

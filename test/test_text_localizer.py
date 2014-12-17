@@ -1,8 +1,8 @@
 import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
-import swt as swt
-import letterCombinator as lc
-import textLocalizer as tl
+sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'lib'))
+import lib.swt as swt
+import lib.letterCombinator as lc
+import lib.textLocalizer as tl
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
@@ -11,7 +11,7 @@ from profiler import *
 import itertools
 
 def test_localizeText():
-  img = cv2.imread('test/images/race_for_life.jpg', 0)
+  img = cv2.imread('test/images/fallout_shelter.jpg', 0)
   rows, cols = img.shape
 
   renderer = tl.LetterRenderer()
