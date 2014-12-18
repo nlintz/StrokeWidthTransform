@@ -1,17 +1,17 @@
 import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '../', 'swt'))
+sys.path.insert(0, '../')
 import lib.letterCombinator as lc
 import lib.connected_components as cc
-from lib.swt import swt
+import lib.swt as swt
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
 import math, random
-from profiler import *
+from lib.profiler import *
 import itertools
 
 def test_find_letters():
-  img = cv2.imread('test/images/emergency_stop.jpg', 0)
+  img = cv2.imread('images/race_for_life.jpg', 0)
   rows, cols = img.shape
 
   # Compute SWT
@@ -37,7 +37,7 @@ def test_find_letters():
   plt.show()
 
 def test_letterCombinator():
-  img = cv2.imread('test/images/rab_butler.jpg', 0)
+  img = cv2.imread('images/rab_butler.JPG', 0)
   rows, cols = img.shape
 
   # Compute SWT
@@ -77,7 +77,7 @@ def test_letterCombinator():
   plt.show()
 
 def test_letter_pairs():
-  img = cv2.imread('test/images/rab_butler.jpg', 0)
+  img = cv2.imread('images/rab_butler.jpg', 0)
   rows, cols = img.shape
 
   # Compute SWT

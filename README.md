@@ -10,5 +10,5 @@ OPT="-O3 -ffast-math" python setup.py build_ext -i
 
 To use package
 ```
-from StrokeWidthTransform import swt
+from StrokeWidthTransform.lib import swt
 ```

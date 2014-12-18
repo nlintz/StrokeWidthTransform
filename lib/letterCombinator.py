@@ -66,6 +66,8 @@ class LetterPair(object):
     return self.letterA.distanceToLetter(self.letterB)
 
   def similarComponentStrokeWidthRatio(self, threshold=1.5):
+    if self.letterA.strokeWidth() == 0 or self.letterB.strokeWidth() == 0:
+      return False
     if max(self.letterA.strokeWidth(), self.letterB.strokeWidth())/min(self.letterA.strokeWidth(), self.letterB.strokeWidth()) < threshold:
       return True
     return False

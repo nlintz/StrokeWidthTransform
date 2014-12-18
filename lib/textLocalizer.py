@@ -10,10 +10,10 @@ import itertools
 
 class TextLocalizer(object):
   @staticmethod
-  def filterLetterPairs(letterPairs):
-    letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(2.5), letterPairs)
-    letterPairs = filter(lambda x: x.similarComponentHeightRatio(), letterPairs)
-    letterPairs = filter(lambda x: x.similarComponentDistance(2.0), letterPairs)
+  def filterLetterPairs(letterPairs, strokeThreshold=1.5, heightThreshold=2, distanceThreshold=1.5):
+    letterPairs = filter(lambda x: x.similarComponentStrokeWidthRatio(strokeThreshold), letterPairs)
+    letterPairs = filter(lambda x: x.similarComponentHeightRatio(heightThreshold), letterPairs)
+    letterPairs = filter(lambda x: x.similarComponentDistance(distanceThreshold), letterPairs)
     return letterPairs
 
   @staticmethod
@@ -32,12 +32,12 @@ class TextLocalizer(object):
     return letters
 
   @staticmethod
-  def findLines(img, direction=-1, letterFilters=('size', 'borders')):
+  def findLines(img, direction=-1, letterFilters=('size', 'borders'), **kwargs):
 
     letters = TextLocalizer.findLetters(img, direction, letterFilters)  
 
     letterPairs = lc.LetterCombinator.generateLetterPairs(letters)
-    filteredLetterPairs = TextLocalizer.filterLetterPairs(letterPairs)
+    filteredLetterPairs = TextLocalizer.filterLetterPairs(letterPairs, **kwargs)
 
     letterChains = [lc.LetterChain.chainFromPair(pair) for pair in filteredLetterPairs]
 
@@ -69,33 +69,37 @@ class TextLocalizer(object):
 
 class LetterRenderer(object):
   @staticmethod
-  def draw_word_line(img, line):
-    for letter in line.letters:
-      LetterRenderer.draw_letter(img, letter)
-    LetterRenderer.draw_letter_rect(img, line.chainToRegion())
+  def draw_word_line(img, line, letterColor=None, rectColor=None):
+    # for letter in line.letters:
+      # LetterRenderer.draw_letter(img, letter, letterColor)
+    LetterRenderer.draw_letter_rect(img, line.chainToRegion(), rectColor)
 
   @staticmethod
-  def draw_word_lines(img, lines):
+  def draw_word_lines(img, lines, letterColor=None, rectColor=None):
     for line in lines:
-      LetterRenderer.draw_word_line(img, line)
+      LetterRenderer.draw_word_line(img, line, letterColor, rectColor)
 
   @staticmethod
-  def draw_letter(img, letter):
-    random_color = (255*random.random(), 255*random.random(), 255*random.random())
+  def draw_letter(img, letter, color=None):
+    if color==None:
+      color = (255*random.random(), 255*random.random(), 255*random.random())
     for pixel in letter.letterPixels:
       (y, x, w) = pixel
-      img[y, x] = random_color
+      img[y, x] = color
 
   @staticmethod
-  def draw_letters(img, letters):
+  def draw_letters(img, letters, color=None):
     for letter in letters:
       LetterRenderer.draw_letter(img, letter)
 
   @staticmethod
-  def draw_letter_rect(img, letter):
+  def draw_letter_rect(img, letter, color=None):
     # if len(region) == 0:
     #   return
-    rows, cols, _ = img.shape
+    if len(img.shape) == 3:
+      rows, cols, _ = img.shape
+    else:
+      rows, cols = img.shape
     box = letter.bounds()
     (miny, minx), (maxy, maxx) = box
     lower_left = (minx, miny)
@@ -103,12 +107,13 @@ class LetterRenderer(object):
     upper_left = (minx, maxy)
     upper_right = (maxx, maxy)
 
-    color = (255*random.random(), 255*random.random(), 255*random.random())
-
-    cv2.line(img, lower_left, lower_right, color, 2)
-    cv2.line(img, lower_left, upper_left, color, 2)
-    cv2.line(img, upper_right, lower_right, color, 2)
-    cv2.line(img, upper_right, upper_left, color, 2)
+    if color == None:
+      color = (255*random.random(), 255*random.random(), 255*random.random())
+    strokeWidth = 4
+    cv2.line(img, lower_left, lower_right, color, strokeWidth)
+    cv2.line(img, lower_left, upper_left, color, strokeWidth)
+    cv2.line(img, upper_right, lower_right, color, strokeWidth)
+    cv2.line(img, upper_right, upper_left, color, strokeWidth)
 
   @staticmethod
   def draw_letter_center(img, letter):

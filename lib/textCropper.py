@@ -9,7 +9,7 @@ import itertools
 
 class TextCropper(object):
   @staticmethod
-  def cropTextRegionsFromImage(img, threshold=0):
+  def cropTextRegionsFromImage(img, threshold=0, returnLines=False):
     """ returns an array of cropped images which likely contain text regions
     """
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -23,10 +23,13 @@ class TextCropper(object):
       croppedRegions.append(TextCropper.getCroppedRegions(img, line, threshold))
     for line in lines_neg:
       croppedRegions.append(TextCropper.getCroppedRegions(img, line, threshold))
+    
+    if returnLines:
+      return (lines_pos + lines_neg, croppedRegions)
     return croppedRegions
 
   @staticmethod
   def getCroppedRegions(img, line, threshold):
     ((minY, minX), (maxY, maxX)) = line.bounds()
-    return img[minY-threshold:maxY+threshold, minX-threshold:maxX+threshold]
+    return img[max(minY-threshold, 0):maxY+threshold, max(minX-threshold, 0):maxX+threshold]
     
