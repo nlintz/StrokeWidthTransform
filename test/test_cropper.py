@@ -28,14 +28,14 @@ def test_text_cropper():
   else:
     image_name = "traffic_large.jpg"
   img = cv2.imread('images/' + image_name)
-  croppedRegions = tc.TextCropper.cropTextRegionsFromImage(img, 10)
+  croppedRegions = tc.TextCropper.cropTextRegionsFromImage(img)
   for i in range(len(croppedRegions)):
     plt.subplot(len(croppedRegions), 1, i+1)
     if croppedRegions[i].size != 0:
       b,g,r = cv2.split(croppedRegions[i])
       rgbImg = cv2.merge([r,g,b])
       # cv2.imwrite('fallout_'+str(i)+'.jpg', croppedRegions[i])
-      find_text(rgbImg)
+      print find_text(rgbImg)
       plt.imshow(rgbImg)
   plt.show()
 

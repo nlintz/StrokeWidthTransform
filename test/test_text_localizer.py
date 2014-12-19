@@ -62,9 +62,9 @@ def test_localizeText_traffic():
   plt.show()
 
 def test_localizeText_rabButler():
-  imgName = 'images/rab_butler_large.JPG'
-  img = cv2.imread(imgName, 0)
-  imgColor = cv2.imread(imgName, 1)
+  imgName = 'uk_dance_prototype_inspired_records.JPG'
+  img = cv2.imread('images/' + imgName, 0)
+  imgColor = cv2.imread('images/' + imgName, 1)
   rows, cols = img.shape
 
   renderer = tl.LetterRenderer()
@@ -73,21 +73,22 @@ def test_localizeText_rabButler():
   plt.subplot(2,1,1)
   new_img = np.zeros((rows, cols, 3), np.uint8)
   lines = localizer.findLines(img, 1, ['size', 'borders', 'aspect_ratio_and_diameter'])
-  renderer.draw_word_lines(imgColor, lines, rectColor=(0, 0, 255))
-  cv2.imwrite('results/rab_butler/words_pos.jpg', imgColor)
+  renderer.draw_word_lines(imgColor, lines, rectColor=(255, 0, 0))
+  cv2.imwrite('results/expo_pictures/results_pos_' + imgName, imgColor)
   plt.imshow(helpers.bgr2rgb(imgColor))
 
   plt.subplot(2,1,2)
-  imgColor = cv2.imread(imgName, 1)
+  imgColor = cv2.imread('images/' + imgName, 1)
 
   lines = localizer.findLines(img, -1, ['size', 'borders', 'aspect_ratio_and_diameter'])
-  renderer.draw_word_lines(imgColor, lines, rectColor=(0, 0, 255))
-  cv2.imwrite('results/rab_butler/words_neg.jpg', imgColor)
+  renderer.draw_word_lines(imgColor, lines, rectColor=(255, 0, 0))
+  cv2.imwrite('results/expo_pictures/results_neg_' + imgName, imgColor)
   plt.imshow(helpers.bgr2rgb(imgColor))
   plt.show()
 
 def test_findLetters():
-  img = cv2.imread('images/rab_butler_large.JPG', 0)
+  imgName='rab_butler_large.JPG'
+  img = cv2.imread('images/'+imgName, 0)
   rows, cols = img.shape
 
   renderer = tl.LetterRenderer()
@@ -99,7 +100,7 @@ def test_findLetters():
     renderer.draw_letter_rect(new_img, letter)
   plt.subplot(2,1,1)
   plt.imshow(new_img)
-  cv2.imwrite('results/rab_butler/letters_pos.jpg', new_img)
+  # cv2.imwrite('results/rab_butler/letters_pos.jpg', new_img)
 
   letters = localizer.findLetters(img, -1, ['size', 'borders', 'aspect_ratio_and_diameter'])
   new_img = np.zeros((rows, cols, 3), np.uint8)
@@ -108,7 +109,7 @@ def test_findLetters():
   for letter in letters:
     renderer.draw_letter_rect(new_img, letter)
   plt.imshow(new_img)
-  cv2.imwrite('results/rab_butler/letters_neg.jpg', new_img)
+  cv2.imwrite('results/expo/localize_' + imgName, new_img)
   plt.show()
 
 def test_findLetterPairs():
@@ -131,4 +132,4 @@ def test_findLetterPairs():
   plt.show()
 
 if __name__ == "__main__":
-  test_findLetters()
+  test_localizeText_rabButler()
